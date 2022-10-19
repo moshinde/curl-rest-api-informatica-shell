@@ -1,0 +1,44 @@
+parameters:
+- name: exportFrom
+  default: none
+  values:
+    - DEV
+  displayName: Select an environment from which you want to export
+- name: importTo
+  default: none
+  values:
+    - QA
+    - DEMO
+    - PROD
+  displayName: Select an environment to which you want to import
+- name: mappingName
+  type: string
+  default: ""
+  displayName: Enter Job name
+- name: mappingID
+  type: string
+  default: ""
+  displayName: Enter Object ID
+
+variables:
+- group: LTI-NOC-sensitive
+
+stages:
+- ${{ if eq(parameters.exportFrom, 'DEV') }}:
+  - stage: Export
+    displayName: Export from DEV
+    jobs:
+      - job: Export
+        displayName: Export from DEV
+        steps:
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+              echo $(DevLoginURL)
+              echo ${{ parameters.mappingID }}
+
+        - task: Bash@3
+          inputs:
+            filePath: 'curl-informatica.sh'
+            arguments: '$(DevLoginURL) $(DevUsername) $(DevPassword) ${{ parameters.mappingName }} ${{ parameters.mappingID }} $(DevLogoutURL)'
